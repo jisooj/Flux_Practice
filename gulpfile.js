@@ -8,6 +8,7 @@ const reactify = require('reactify'); // converts JSX to JS
 const source = require('vinyl-source-stream'); // use conventional text stream with gulp
 const concat = require('gulp-concat'); // concats files
 const del = require('del');
+const esLint = require('gulp-eslint'); // lint js and jsx files
 
 var config = {
 	port: 9000,
@@ -43,20 +44,22 @@ function clean() {
   return del([config.paths.dist + '/']);
 }
 
-function html() {
+function html(done) {
 	gulp.src(config.paths.html)
-	.pipe(gulp.dest(config.paths.dist))
-	.pipe(connect.reload());
+		.pipe(gulp.dest(config.paths.dist))
+		.pipe(connect.reload());
+	done();
 }
 
-function css() {
+function css(done) {
 	gulp.src(config.paths.css)
-	.pipe(concat('bundle.css'))
-	.pipe(gulp.dest(config.paths.dist + '/css'))
-	.pipe(connect.reload());
+		.pipe(concat('bundle.css'))
+		.pipe(gulp.dest(config.paths.dist + '/css'))
+		.pipe(connect.reload());
+	done();
 }
 
-function js() {
+function js(done) {
 	browserify(config.paths.mainJs)
 		.transform(reactify)
 		.bundle() // put all js files into a single js file
@@ -64,13 +67,21 @@ function js() {
 		.pipe(source('bundle.js'))
 		.pipe(gulp.dest(config.paths.dist + '/scripts'))
 		.pipe(connect.reload());
+	done();
 }
 
 // execute whenever something changes in source files
 function watchFiles() {
 	gulp.watch(config.paths.html, html);
-	gulp.watch(config.paths.js, js);
+	gulp.watch(config.paths.js, gulp.series(lint, js));
 	gulp.watch(config.paths.css, css);
+}
+
+function lint(done) {
+	gulp.src(config.paths.js)
+		.pipe(esLint())
+		.pipe(esLint.format());
+	done();
 }
 
 /*
@@ -84,7 +95,7 @@ const build = gulp.series(
 	clean,
 	gulp.parallel(
 		gulp.parallel(js, css, html), 
-		gulp.series(connectToServer, open), 
+		gulp.series(connectToServer, open),
 		watchFiles
 	)
 );
@@ -92,3 +103,4 @@ const build = gulp.series(
 
 // define gulp tasks here
 exports.default = build;
+exports.watch = watchFiles;
