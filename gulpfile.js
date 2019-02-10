@@ -16,8 +16,7 @@ var config = {
 		html: './src/*.html',
 		js: './src/**/*.js',
 		css: [
-			// './node_modules/bootstrap/dist/css/bootstrap.min.css',
-			'./src/sample.css'
+			'./node_modules/bootstrap/dist/css/bootstrap.min.css'
 		],
 		dist: './dist',
 		mainJs: './src/main.js'
@@ -82,9 +81,9 @@ DEPENDENCY:
 	watch
 */
 const build = gulp.series(
-	// clean, 
+	clean,
 	gulp.parallel(
-		gulp.series(html, js, css), 
+		gulp.parallel(js, css, html), 
 		gulp.series(connectToServer, open), 
 		watchFiles
 	)
