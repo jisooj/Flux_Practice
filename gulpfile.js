@@ -11,33 +11,34 @@ const del = require('del');
 const esLint = require('gulp-eslint'); // lint js and jsx files
 
 var config = {
-	port: 9000,
-	devBaseUrl: 'http://localhost',
-	paths: {
-		html: './src/*.html',
-		js: './src/**/*.js',
-		css: [
-			'./node_modules/bootstrap/dist/css/bootstrap.min.css'
-		],
-		dist: './dist',
-		mainJs: './src/main.js'
-	}
+   port: 9000,
+   devBaseUrl: 'http://localhost',
+   paths: {
+      html: './src/*.html',
+      js: './src/**/*.js',
+      css: [
+         './node_modules/bootstrap/dist/css/bootstrap.min.css'
+      ],
+      images: './src/images/*',
+      dist: './dist',
+      mainJs: './src/main.js'
+   }
 };
 
 // start a local dev server 
 function connectToServer() {
-	connect.server({
-		root: ['dist'],
-		port: config.port,
-		base: config.devBaseUrl,
-		livereload: true
-	});
+   connect.server({
+      root: ['dist'],
+      port: config.port,
+      base: config.devBaseUrl,
+      livereload: true
+   });
 }
 
 function open() {
-	gulp.src('dist/index.html').pipe(gulpOpen({
-		uri: config.devBaseUrl + ':' + config.port + '/'
-	}));
+   gulp.src('dist/index.html').pipe(gulpOpen({
+      uri: config.devBaseUrl + ':' + config.port + '/'
+   }));
 }
 
 function clean() {
@@ -45,59 +46,67 @@ function clean() {
 }
 
 function html(done) {
-	gulp.src(config.paths.html)
-		.pipe(gulp.dest(config.paths.dist))
-		.pipe(connect.reload());
-	done();
+   gulp.src(config.paths.html)
+      .pipe(gulp.dest(config.paths.dist))
+      .pipe(connect.reload());
+   done();
 }
 
 function css(done) {
-	gulp.src(config.paths.css)
-		.pipe(concat('bundle.css'))
-		.pipe(gulp.dest(config.paths.dist + '/css'))
-		.pipe(connect.reload());
-	done();
+   gulp.src(config.paths.css)
+      .pipe(concat('bundle.css'))
+      .pipe(gulp.dest(config.paths.dist + '/css'))
+      .pipe(connect.reload());
+   done();
 }
 
 function js(done) {
-	browserify(config.paths.mainJs)
-		.transform(reactify)
-		.bundle() // put all js files into a single js file
-		.on('error', console.error.bind(console))
-		.pipe(source('bundle.js'))
-		.pipe(gulp.dest(config.paths.dist + '/scripts'))
-		.pipe(connect.reload());
-	done();
+   browserify(config.paths.mainJs)
+      .transform(reactify)
+      .bundle() // put all js files into a single js file
+      .on('error', console.error.bind(console))
+      .pipe(source('bundle.js'))
+      .pipe(gulp.dest(config.paths.dist + '/scripts'))
+      .pipe(connect.reload());
+   done();
+}
+
+function images(done) {
+   gulp.src(config.paths.images)
+      .pipe(gulp.dest(config.paths.dist + '/images'))
+      .pipe(connect.reload());
+   done();
 }
 
 // execute whenever something changes in source files
 function watchFiles() {
-	gulp.watch(config.paths.html, html);
-	gulp.watch(config.paths.js, gulp.series(lint, js));
-	gulp.watch(config.paths.css, css);
+   gulp.watch(config.paths.html, html);
+   gulp.watch(config.paths.js, gulp.series(lint, js));
+   gulp.watch(config.paths.css, css);
+   gulp.watch(config.paths.images, images);
 }
 
 function lint(done) {
-	gulp.src(config.paths.js)
-		.pipe(esLint())
-		.pipe(esLint.format());
-	done();
+   gulp.src(config.paths.js)
+      .pipe(esLint())
+      .pipe(esLint.format());
+   done();
 }
 
 /*
 Command gulp -> run html and open task
 DEPENDENCY:
-	connect -> open
-	html 
-	watch
+   connect -> open
+   html 
+   watch
 */
 const build = gulp.series(
-	clean,
-	gulp.parallel(
-		gulp.parallel(js, css, html), 
-		gulp.series(connectToServer, open),
-		watchFiles
-	)
+   clean,
+   gulp.parallel(
+      gulp.parallel(js, css, html, images), 
+      gulp.series(connectToServer, open),
+      watchFiles
+   )
 );
 
 
