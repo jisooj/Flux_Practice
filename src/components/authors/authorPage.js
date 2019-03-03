@@ -1,8 +1,9 @@
-"use strict";
+'use strict';
 
 var React = require('react');
 var createReactClass = require('create-react-class');
 var AuthorApi = require('../../api/authorApi');
+var AuthorList = require('./AuthorList');
 
 var Authors = createReactClass({
 	getInitialState: function() {
@@ -18,27 +19,10 @@ var Authors = createReactClass({
 	},
 
 	render: function() {
-		var createAuthorRow = function(author) {
-			return (
-				<tr key={author.id}>
-					<td><a href={"/#authors/" + author.id}>{author.id}</a></td>
-					<td>{author.firstName} {author.lastName}</td>
-				</tr>
-			);
-		};
 		return (
 			<div>
 				<h1>Authors</h1>
-
-				<table className='table'>
-					<thead>
-						<th>ID</th>
-						<th>Name</th>
-					</thead>
-					<tbody>
-						{this.state.authors.map(createAuthorRow, this)}
-					</tbody>
-				</table>
+				<AuthorList authors={this.state.authors} />
 			</div>
 		);
 	}
